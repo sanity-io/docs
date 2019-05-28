@@ -1,0 +1,131 @@
+import Guide from '~/components/layout/guide'
+import { TerminalInput } from '~/components/text/terminal'
+import Caption from '~/components/text/caption'
+
+export const meta = {
+  title: 'Deploying Sanity Studio with Now',
+  description: 'How to deploy your Sanity Studio with Now',
+  published: '2019-05-28T03:00:00.000Z',
+  authors: ['kmelve'],
+  url: '/guides/deploying-sanity-studio-with-now',
+  image:
+    'https://og-image.now.sh/Deploy%20Sanity%20with%20Now.png?theme=light&md=1&fontSize=100px&images=https%3A%2F%2Fassets.zeit.co%2Fimage%2Fupload%2Ffront%2Fassets%2Fdesign%2Fnow-black.svg&images=https%3A%2F%2Fcdn.sanity.io%2Fimages%2F3do82whm%2Fproduction%2F32ad3bafc3c20872754ca164eece005c6827fac4-186x247.svg',
+  editUrl: 'pages/guides/deploying-sanity-studio-with-now.mdx',
+  lastEdited: '2019-05-28T00:00:00.000Z'
+}
+
+[Sanity.io](https://www.sanity.io) is a platform for structured content that comes with an open source editing environment. Sanity Studio is a single page application written in React, where you can configure the document types, and input fields with simple JavaScript objects. The Studio connects to Sanity’s hosted real-time APIs. You can also extend the Studio with your own input components, plugins, and tools.
+
+## Step 1: Set up your Sanity Studio project
+
+First install the [Sanity CLI](https://www.npmjs.com/package/@sanity/cli):
+
+<TerminalInput>yarn global add @sanity/cli</TerminalInput>
+<Caption>You can also use `npm i -g @sanity/cli`</Caption>
+
+To initate a new project and download the Studio code to your computer, run the following in the command line:
+
+<TerminalInput>sanity init</TerminalInput>
+<Caption>This will initate a new Sanity project</Caption>
+
+The CLI will walk you through the necessary steps to start a project, and let you choose a schema template. When you're done with these steps, the CLI will download the source code and configuration to get you started. To start it for local development, run this command in the studio folder:
+
+<TerminalInput>sanity start</TerminalInput>
+<Caption>Starts the local development server for Sanity Studio</Caption>
+
+Check out [Sanity’s documentation](https://sanity.io/docs) to learn more about how to configure and extend the Studio.
+
+## Step 2: Add the configuration for `now`
+
+The Studio can run on any environment that serves static files and lets you redirect all requests to a single path. Obviously, `now` is an excellent place to host Sanity Studio.
+
+First add a file called `now.json` in the project folder, and copy-paste this code into it:
+
+```json
+{
+  "version": 2,
+  "name": "sanity-studio",
+  "builds": [{ "src": "package.json", "use": "@now/static-build" }],
+  "routes": [
+    { "src": "^/static/favicon.ico", "dest": "/static/favicon.ico" },
+    { "src": "^/static/(.*)", "dest": "/static/$1" },
+    { "src": "^/(.*)", "dest": "/index.html" }
+  ]
+}
+```
+
+<Caption>
+  You can of course adjust the configuration to suit your project.
+</Caption>
+
+The builder will look for a npm script called `now-build`, so we'll have to add this to the `scripts` part of the Studio’s `package.json`:
+
+```json
+// ...
+"scripts": {
+  "start": "sanity start",
+  "test": "sanity check",
+  "now-build": "sanity build"
+},
+// ...
+```
+
+And lastly, you'll need to add `@sanity/cli` as a devDependency, so that the `now` builder can run the `sanity build` script:
+
+<TerminalInput>yarn add @sanity/cli --dev</TerminalInput>
+
+Make sure that you have saved `now.json` and `package.json`.
+
+## Step 3: Deploy!
+
+You can choose whether you want to deploy the Studio directly from the command line using `now`, or from GitHub by installing the Github App. When the Studio has deployed successfully, you'll have to add it's URL to Sanity’s [CORS origins](https://www.sanity.io/docs/front-ends/cors) settings. You can do it from the command line:
+
+<TerminalInput>sanity cors add your-url.now.sh --credentials</TerminalInput>
+<Caption>Remember to allow credentials</Caption>
+
+Or you can navigate to [manage.sanity.io](https://manage.sanity.io), find your project, go to Settings => API, and add the Studio URL to the CORS origins list. You want allow credentials since the Studio requires authentication (most frontends don't).
+
+## Bonus: Deploying the Studio in a monorepo
+
+Sometimes you want to have the Studio in the same git repository as your frontend and lambda code. In order to build and have it run smoothly, you'll need to make some small adjustments to the `now.json` as well as the `sanity.json` files. Let's say that you have a JavaScript frontend of some sorts in a `/web` folder, and the studio in a `/studio` folder:
+
+```json
+{
+  "version": 2,
+  "name": "web-and-studio",
+  "builds": [
+    {
+      "src": "web/package.json",
+      "use": "@now/static-build",
+      "config": { "distDir": "_site" }
+    },
+    { "src": "studio/package.json", "use": "@now/static-build" }
+  ],
+  "routes": [
+    {
+      "src": "^/studio/static/favicon.ico",
+      "dest": "/studio/static/favicon.ico"
+    },
+    { "src": "^/studio/static/(.*)", "dest": "/studio/static/$1" },
+    { "src": "^/studio/(.*)", "dest": "/studio/index.html" },
+    { "src": "^/(.*)", "dest": "/web/$1" }
+  ]
+}
+```
+
+<Caption>Pay attention to the order of the routes here.</Caption>
+
+Since we're now accessing the studio on `your-url.now.sh/studio`, we need to tell the studio that it runs in a subfolder. This is done by adding `basePath` to `sanity.json`:
+
+```json
+//...
+"project": {
+    "name": "my-sanity-studio",
+    "basePath": "/studio"
+},
+//...
+```
+
+If you want to change `studio` to `admin` or something else, make sure you replace all occurrances in this configuration.
+
+export default ({ children }) => <Guide meta={meta}>{children}</Guide>
