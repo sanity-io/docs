@@ -67,13 +67,14 @@ import { TerminalInput } from '~/components/text/terminal'
 
 export const meta = {
   title: 'The Title for the New Guide',
-  description: 'The description for the new guide page.'
-  published: '1 January 2019',
+  description: 'The description for the new guide page.',
+  published: '2019-01-01T03:00:00.860Z',
   authors: ['your-zeit-username'],
-  url: '/guides/guide-url'
+  url: '/guides/guide-file-name',
+  image: 'https://og-image.now.sh/your-generated-open-graph-image-with-params.svg',
 }
 
-This is the content written in Markdown with MDX!.
+This is the content written in Markdown with MDX!
 
 <TerminalInput># this is how we show the terminal input</TerminalInput>
 
@@ -81,6 +82,14 @@ The following is to allow the content to be exported as a page with our layout.
 
 export default ({ children }) => <Guide meta={meta}>{children}</Guide>
 ```
+
+You can head over to [og-image.now.sh](https://og-image.now.sh/) to generate the URL for `meta.image`.
+
+Note that the guide’s `meta` will be updated with a `editUrl` and `lastEdited` from [this script](https://github.com/zeit/docs/blob/master/scripts/update-mdx-meta.js), so no need to fill those out manually.
+
+The slug for `meta.url` has to match the filename. For example, if your guide’s filename is `deploying-react-with-now.mdx`, the `meta.url` should be `/guides/deploying-react-with-now`.
+
+To add the guide to the listing on [zeit.co/guides](https://zeit.co/guides), you'll have to import the `meta` variable from your mdx-file in [`/lib/data/guides.js`](https://github.com/zeit/docs/blob/master/lib/data/guides.js). Reuse the same pattern as the other guides there. The guides are ordered according to position in the exported array.
 
 ### Adding Images and Assets
 
