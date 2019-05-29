@@ -102,7 +102,7 @@ Or you can navigate to [manage.sanity.io](https://manage.sanity.io), find your p
 
 ## Bonus: Deploying Sanity Studio in a monorepo
 
-Sometimes you want to have the Studio in the same git repository as your frontend and lambda code. In order to build and have it run smoothly, you'll need to make some small adjustments to the `now.json` as well as the `sanity.json` files. Let's say that you have a JavaScript frontend of some sorts in a `/web` folder, and the studio in a `/studio` folder:
+Sometimes you want to have the Studio in the same git repository as your frontend and lambda code. In order to build and have it run smoothly, you'll need to make some small adjustments to the `now.json` as well as the `sanity.json` files. Let's say that you have a JavaScript frontend of some sorts in a `/web` folder, some Go functions in an `/api` folder, and Sanity Studio in a `/studio` folder. Then your `now.json` configuration should look something like this. The `builds` and the `routes` are the most important part here:
 
 ```json
 {
